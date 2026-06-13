@@ -405,8 +405,9 @@ tr:hover td{background:rgba(201,168,76,0.02)}
 }
 </style>
 
+
 <style>
-/* ====== AI Chat Widget ====== */
+/* ====== AI Chat Widget (standalone) ====== */
 #ai-chat-fab{position:fixed;bottom:2rem;left:2rem;width:60px;height:60px;background:linear-gradient(135deg,#C9A84C,#E8C96A);border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:9999;box-shadow:0 4px 20px rgba(201,168,76,.4);border:none;transition:transform .2s,box-shadow .2s}
 #ai-chat-fab:hover{transform:scale(1.1);box-shadow:0 6px 30px rgba(201,168,76,.6)}
 #ai-chat-fab svg{width:28px;height:28px;fill:#060606}
@@ -419,6 +420,14 @@ tr:hover td{background:rgba(201,168,76,0.02)}
 .ai-title p{font-size:.68rem;color:#C9A84C;margin:0;font-family:'Vazirmatn',sans-serif}
 #ai-chat-close{background:none;border:none;color:#666;cursor:pointer;font-size:1.1rem;padding:0;line-height:1;transition:color .2s}
 #ai-chat-close:hover{color:#F5F0E8}
+#ai-key-setup{padding:1.2rem 1.4rem;direction:rtl;display:flex;flex-direction:column;gap:.75rem}
+#ai-key-setup p{font-size:.8rem;color:#aaa;margin:0;font-family:'Vazirmatn',sans-serif;line-height:1.6}
+#ai-key-setup a{color:#C9A84C;text-decoration:none}
+#ai-key-inp{background:#161616;border:1px solid rgba(201,168,76,.3);border-radius:8px;padding:.6rem .9rem;color:#F5F0E8;font-family:monospace;font-size:.78rem;outline:none;width:100%;box-sizing:border-box;direction:ltr}
+#ai-key-inp:focus{border-color:rgba(201,168,76,.6)}
+#ai-key-inp::placeholder{color:#444}
+#ai-key-save{background:linear-gradient(135deg,#C9A84C,#E8C96A);border:none;border-radius:8px;padding:.65rem 1.2rem;color:#060606;font-family:'Vazirmatn',sans-serif;font-size:.82rem;font-weight:700;cursor:pointer;width:100%;transition:opacity .2s}
+#ai-key-save:hover{opacity:.9}
 #ai-chat-msgs{flex:1;overflow-y:auto;padding:1rem;display:flex;flex-direction:column;gap:.75rem;max-height:320px;scrollbar-width:thin;scrollbar-color:rgba(201,168,76,.3) transparent}
 #ai-chat-msgs::-webkit-scrollbar{width:4px}
 #ai-chat-msgs::-webkit-scrollbar-thumb{background:rgba(201,168,76,.3);border-radius:2px}
@@ -442,6 +451,8 @@ tr:hover td{background:rgba(201,168,76,0.02)}
 #ai-chat-send:hover{opacity:.9}
 #ai-chat-send:disabled{opacity:.45;cursor:not-allowed}
 #ai-chat-send svg{width:17px;height:17px;fill:#060606}
+#ai-key-reset{background:none;border:none;color:#555;font-size:.7rem;cursor:pointer;padding:0;font-family:'Vazirmatn',sans-serif;transition:color .2s;margin-right:auto}
+#ai-key-reset:hover{color:#C9A84C}
 @media(max-width:480px){#ai-chat-panel{width:calc(100vw - 2rem);left:1rem;bottom:4.5rem}#ai-chat-fab{bottom:1rem;left:1rem}}
 </style>
 </head>
@@ -2692,113 +2703,175 @@ if(_hash === '#admin'){
 <div id="ai-chat-panel">
   <div id="ai-chat-header">
     <div class="ai-avatar">
-      <svg viewBox="0 0 24 24"><path d="M21.71 20.29L18 16.61A9 9 0 1 0 16.61 18l3.68 3.68a1 1 0 0 0 1.42 0 1 1 0 0 0 0-1.39zM11 18a7 7 0 1 1 7-7 7 7 0 0 1-7 7z"/></svg>
+      <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14H9V8h2v8zm4 0h-2V8h2v8z"/></svg>
     </div>
     <div class="ai-title">
       <h3>دستیار هوشمند اوتوپیا</h3>
-      <p>آماده پاسخ‌گویی • Claude AI</p>
+      <p id="ai-status-txt">آماده پاسخ‌گویی • Claude AI</p>
     </div>
-    <button id="ai-chat-close" onclick="toggleAiChat()" aria-label="بستن">✕</button>
+    <button id="ai-chat-close" onclick="toggleAiChat()">✕</button>
   </div>
-  <div id="ai-chat-msgs">
+
+  <!-- صفحه ورود کلید API -->
+  <div id="ai-key-setup">
+    <p>برای فعال‌سازی دستیار هوشمند، کلید API آنتروپیک خود را وارد کنید.<br>
+    کلید از <a href="https://console.anthropic.com" target="_blank">console.anthropic.com</a> قابل دریافت است.<br>
+    <small style="color:#666">کلید فقط در مرورگر شما ذخیره می‌شود.</small></p>
+    <input id="ai-key-inp" type="password" placeholder="sk-ant-..." autocomplete="off"/>
+    <button id="ai-key-save" onclick="aiSaveKey()">فعال‌سازی دستیار</button>
+  </div>
+
+  <!-- صفحه چت -->
+  <div id="ai-chat-msgs" style="display:none">
     <div class="ai-msg bot">
       <div class="ai-bubble">سلام! 👋 من دستیار هوشمند آژانس اوتوپیا هستم.<br>درباره خرید، فروش یا اجاره ملک سوالی دارید؟</div>
     </div>
   </div>
-  <div id="ai-chat-foot">
+  <div id="ai-chat-foot" style="display:none">
     <button id="ai-chat-send" onclick="sendAiMsg()" aria-label="ارسال">
       <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
     </button>
-    <textarea id="ai-chat-inp" rows="1" placeholder="سوال خود را بنویسید..." onkeydown="aiKeydown(event)" oninput="autoResize(this)"></textarea>
+    <textarea id="ai-chat-inp" rows="1" placeholder="سوال خود را بنویسید..." onkeydown="aiKeydown(event)" oninput="autoResizeAi(this)"></textarea>
+  </div>
+  <div id="ai-footer-bar" style="display:none;padding:.4rem .8rem;border-top:1px solid rgba(201,168,76,.08);direction:rtl">
+    <button id="ai-key-reset" onclick="aiResetKey()">⚙ تغییر کلید API</button>
   </div>
 </div>
 
 <script>
 (function(){
-  var _aiOpen=false, _aiHistory=[], _aiBusy=false;
+var _aiOpen=false,_aiHistory=[],_aiBusy=false;
+var AI_SYS='شما دستیار هوشمند آژانس املاک اوتوپیا هستید – معتبرترین آژانس املاک ایران با بیش از ۲۰۰۰ معامله موفق در ۱۵ شهر ایران.\n\nوظایف:\n- پاسخ به سوالات مشتریان درباره خرید، فروش و اجاره ملک\n- ارائه مشاوره حرفه‌ای ملکی و راهنمایی در فرآیند معامله\n- توضیح خدمات آژانس اوتوپیا\n\nقوانین:\n- همیشه به فارسی پاسخ دهید\n- پاسخ‌ها کوتاه و مفید باشند\n- فقط درباره موضوعات ملکی صحبت کنید';
 
-  window.toggleAiChat=function(){
-    _aiOpen=!_aiOpen;
-    var p=document.getElementById('ai-chat-panel');
-    _aiOpen ? p.classList.add('open') : p.classList.remove('open');
-    if(_aiOpen) setTimeout(function(){ document.getElementById('ai-chat-inp').focus(); },300);
-  };
+function getKey(){return localStorage.getItem('utopia_api_key');}
 
-  window.autoResize=function(el){
-    el.style.height='auto';
-    el.style.height=Math.min(el.scrollHeight,100)+'px';
-  };
+function showChat(){
+  document.getElementById('ai-key-setup').style.display='none';
+  document.getElementById('ai-chat-msgs').style.display='flex';
+  document.getElementById('ai-chat-foot').style.display='flex';
+  document.getElementById('ai-footer-bar').style.display='block';
+  document.getElementById('ai-status-txt').textContent='آماده پاسخ‌گویی • Claude AI';
+}
 
-  window.aiKeydown=function(e){
-    if(e.key==='Enter'&&!e.shiftKey){ e.preventDefault(); sendAiMsg(); }
-  };
+function showKeySetup(){
+  document.getElementById('ai-key-setup').style.display='flex';
+  document.getElementById('ai-chat-msgs').style.display='none';
+  document.getElementById('ai-chat-foot').style.display='none';
+  document.getElementById('ai-footer-bar').style.display='none';
+  document.getElementById('ai-status-txt').textContent='نیاز به راه‌اندازی';
+}
 
-  function addMsg(role,text){
-    var c=document.getElementById('ai-chat-msgs');
-    var d=document.createElement('div');
-    d.className='ai-msg '+role;
-    var b=document.createElement('div');
-    b.className='ai-bubble';
-    b.textContent=text;
-    d.appendChild(b);
-    c.appendChild(d);
-    c.scrollTop=c.scrollHeight;
-    return b;
+window.toggleAiChat=function(){
+  _aiOpen=!_aiOpen;
+  var p=document.getElementById('ai-chat-panel');
+  if(_aiOpen){
+    p.classList.add('open');
+    if(getKey()) showChat(); else showKeySetup();
+  } else {
+    p.classList.remove('open');
   }
+};
 
-  function showTyping(){
-    var c=document.getElementById('ai-chat-msgs');
-    var d=document.createElement('div');
-    d.className='ai-msg bot'; d.id='ai-typing';
-    d.innerHTML='<div class="ai-bubble"><div class="ai-dots"><span></span><span></span><span></span></div></div>';
-    c.appendChild(d); c.scrollTop=c.scrollHeight;
-  }
+window.aiSaveKey=function(){
+  var k=document.getElementById('ai-key-inp').value.trim();
+  if(!k||!k.startsWith('sk-')){alert('کلید معتبر نیست. باید با sk- شروع شود.');return;}
+  localStorage.setItem('utopia_api_key',k);
+  document.getElementById('ai-key-inp').value='';
+  showChat();
+  setTimeout(function(){document.getElementById('ai-chat-inp').focus();},200);
+};
 
-  function hideTyping(){ var t=document.getElementById('ai-typing'); if(t) t.remove(); }
+window.aiResetKey=function(){
+  if(confirm('کلید API پاک شود؟')){localStorage.removeItem('utopia_api_key');showKeySetup();}
+};
 
-  window.sendAiMsg=async function(){
-    if(_aiBusy) return;
-    var inp=document.getElementById('ai-chat-inp');
-    var text=inp.value.trim();
-    if(!text) return;
-    inp.value=''; inp.style.height='auto';
-    addMsg('user',text);
-    _aiHistory.push({role:'user',content:text});
-    _aiBusy=true;
-    document.getElementById('ai-chat-send').disabled=true;
-    showTyping();
-    try{
-      var res=await fetch('/api/chat',{
-        method:'POST',
-        headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({messages:_aiHistory})
-      });
-      if(!res.ok) throw new Error('server error');
-      hideTyping();
-      var bubble=addMsg('bot','');
-      var reader=res.body.getReader();
-      var dec=new TextDecoder();
-      var full='';
-      while(true){
-        var _r=await reader.read();
-        if(_r.done) break;
-        var lines=dec.decode(_r.value,{stream:true}).split('\n');
-        for(var i=0;i<lines.length;i++){
-          var ln=lines[i];
-          if(!ln.startsWith('data: ')) continue;
-          var d=ln.slice(6);
-          if(d==='[DONE]') break;
-          try{ var obj=JSON.parse(d); if(obj.text){ full+=obj.text; bubble.textContent=full; document.getElementById('ai-chat-msgs').scrollTop=9999; } }catch(e){}
-        }
-      }
-      _aiHistory.push({role:'assistant',content:full});
-    }catch(err){
-      hideTyping();
-      addMsg('bot','متأسفم، خطایی رخ داد. لطفاً دوباره تلاش کنید.');
+window.autoResizeAi=function(el){el.style.height='auto';el.style.height=Math.min(el.scrollHeight,100)+'px';};
+window.aiKeydown=function(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendAiMsg();}};
+
+function addMsg(role,text){
+  var c=document.getElementById('ai-chat-msgs');
+  var d=document.createElement('div');d.className='ai-msg '+role;
+  var b=document.createElement('div');b.className='ai-bubble';b.textContent=text;
+  d.appendChild(b);c.appendChild(d);c.scrollTop=c.scrollHeight;return b;
+}
+
+function showTyping(){
+  var c=document.getElementById('ai-chat-msgs');
+  var d=document.createElement('div');d.className='ai-msg bot';d.id='ai-typing';
+  d.innerHTML='<div class="ai-bubble"><div class="ai-dots"><span></span><span></span><span></span></div></div>';
+  c.appendChild(d);c.scrollTop=c.scrollHeight;
+}
+
+function hideTyping(){var t=document.getElementById('ai-typing');if(t)t.remove();}
+
+window.sendAiMsg=async function(){
+  if(_aiBusy) return;
+  var k=getKey();if(!k){showKeySetup();return;}
+  var inp=document.getElementById('ai-chat-inp');
+  var text=inp.value.trim();if(!text) return;
+  inp.value='';inp.style.height='auto';
+  addMsg('user',text);
+  _aiHistory.push({role:'user',content:text});
+  if(_aiHistory.length>20) _aiHistory=_aiHistory.slice(-20);
+  _aiBusy=true;
+  document.getElementById('ai-chat-send').disabled=true;
+  showTyping();
+  try{
+    var res=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{
+        'Content-Type':'application/json',
+        'x-api-key':k,
+        'anthropic-version':'2023-06-01',
+        'anthropic-dangerous-direct-browser-access':'true'
+      },
+      body:JSON.stringify({
+        model:'claude-opus-4-8',
+        max_tokens:1024,
+        stream:true,
+        system:AI_SYS,
+        messages:_aiHistory
+      })
+    });
+    if(!res.ok){
+      var err=await res.json().catch(function(){return {};});
+      if(res.status===401){localStorage.removeItem('utopia_api_key');showKeySetup();throw new Error('invalid key');}
+      throw new Error(err.error&&err.error.message||'HTTP '+res.status);
     }
-    _aiBusy=false;
-    document.getElementById('ai-chat-send').disabled=false;
-  };
+    hideTyping();
+    var bubble=addMsg('bot','');
+    var reader=res.body.getReader(),dec=new TextDecoder(),full='';
+    while(true){
+      var _r=await reader.read();if(_r.done) break;
+      var lines=dec.decode(_r.value,{stream:true}).split('\n');
+      for(var i=0;i<lines.length;i++){
+        var ln=lines[i];
+        if(!ln.startsWith('data: ')) continue;
+        var d=ln.slice(6);if(d==='[DONE]') break;
+        try{
+          var obj=JSON.parse(d);
+          if(obj.type==='content_block_delta'&&obj.delta&&obj.delta.type==='text_delta'){
+            full+=obj.delta.text;bubble.textContent=full;
+            document.getElementById('ai-chat-msgs').scrollTop=9999;
+          }
+        }catch(e){}
+      }
+    }
+    _aiHistory.push({role:'assistant',content:full});
+  }catch(err){
+    hideTyping();
+    if(err.message!=='invalid key') addMsg('bot','متأسفم، خطایی رخ داد: '+err.message);
+  }
+  _aiBusy=false;
+  document.getElementById('ai-chat-send').disabled=false;
+};
+
+// keyboard shortcut: / opens chat
+document.addEventListener('keydown',function(e){
+  if(e.key==='/'&&!e.ctrlKey&&!e.metaKey&&document.activeElement.tagName!=='INPUT'&&document.activeElement.tagName!=='TEXTAREA'){
+    e.preventDefault();toggleAiChat();
+  }
+});
 })();
 </script>
 </body>
