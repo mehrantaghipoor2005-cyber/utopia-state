@@ -403,6 +403,50 @@ tr:hover td{background:rgba(201,168,76,0.02)}
   .tb-right{gap:0.3rem}
   #uname{max-width:60px!important;font-size:0.7rem!important}
 }
+/* ===== 3D BUTTONS ===== */
+/* Gold / filled */
+.btn-glow,.sbtn,.cf-btn,.login-btn,.detail-contact-btn,.ab-gold,.nav-admin{box-shadow:0 6px 0 #3d2808,0 8px 18px rgba(0,0,0,.5),0 0 25px rgba(201,168,76,.12)!important;transform:translateY(0)!important;transition:transform .12s cubic-bezier(.34,1.4,.64,1),box-shadow .12s ease,filter .12s ease!important}
+.btn-glow:hover,.sbtn:hover,.cf-btn:hover,.login-btn:hover,.detail-contact-btn:hover,.ab-gold:hover,.nav-admin:hover{box-shadow:0 10px 0 #3d2808,0 14px 28px rgba(0,0,0,.6),0 0 40px rgba(201,168,76,.4)!important;transform:translateY(-5px)!important;filter:brightness(1.08)!important}
+.btn-glow:active,.sbtn:active,.cf-btn:active,.login-btn:active,.detail-contact-btn:active,.ab-gold:active,.nav-admin:active{box-shadow:0 2px 0 #3d2808,0 3px 8px rgba(0,0,0,.4)!important;transform:translateY(4px)!important;filter:brightness(.95)!important}
+/* Outline / wire */
+.btn-wire,.dm-share-btn,.detail-back{box-shadow:0 5px 0 rgba(60,42,10,.7),0 7px 14px rgba(0,0,0,.4)!important;transform:translateY(0)!important;transition:transform .12s cubic-bezier(.34,1.4,.64,1),box-shadow .12s ease!important}
+.btn-wire:hover,.dm-share-btn:hover,.detail-back:hover{box-shadow:0 8px 0 rgba(60,42,10,.8),0 12px 22px rgba(0,0,0,.5)!important;transform:translateY(-4px)!important}
+.btn-wire:active,.dm-share-btn:active,.detail-back:active{box-shadow:0 2px 0 rgba(60,42,10,.6),0 3px 6px rgba(0,0,0,.3)!important;transform:translateY(3px)!important}
+/* Admin action .ab */
+.ab:not(.ab-red):not(.ab-gold){box-shadow:0 4px 0 rgba(0,0,0,.85),0 5px 12px rgba(0,0,0,.4)!important;transform:translateY(0)!important;transition:transform .12s cubic-bezier(.34,1.4,.64,1),box-shadow .12s ease,border-color .15s,color .15s!important}
+.ab:not(.ab-red):not(.ab-gold):hover{box-shadow:0 6px 0 rgba(0,0,0,.9),0 9px 18px rgba(0,0,0,.5)!important;transform:translateY(-3px)!important}
+.ab:not(.ab-red):not(.ab-gold):active{box-shadow:0 1px 0 rgba(0,0,0,.75),0 2px 5px rgba(0,0,0,.3)!important;transform:translateY(3px)!important}
+/* Red admin */
+.ab-red{box-shadow:0 4px 0 rgba(80,5,5,.85),0 6px 12px rgba(0,0,0,.45)!important;transform:translateY(0)!important;transition:transform .12s cubic-bezier(.34,1.4,.64,1),box-shadow .12s ease!important}
+.ab-red:hover{box-shadow:0 7px 0 rgba(80,5,5,.9),0 10px 20px rgba(0,0,0,.55)!important;transform:translateY(-3px)!important}
+.ab-red:active{box-shadow:0 1px 0 rgba(80,5,5,.7),0 2px 5px rgba(0,0,0,.3)!important;transform:translateY(3px)!important}
+/* Listing card buttons */
+.lcard-btn{box-shadow:0 3px 0 rgba(0,0,0,.65),0 5px 10px rgba(0,0,0,.35)!important;transform:translateY(0)!important;transition:transform .12s cubic-bezier(.34,1.4,.64,1),box-shadow .12s ease!important}
+.lcard-btn:hover{box-shadow:0 5px 0 rgba(0,0,0,.75),0 8px 14px rgba(0,0,0,.45)!important;transform:translateY(-2px)!important}
+.lcard-btn:active{box-shadow:0 1px 0 rgba(0,0,0,.5)!important;transform:translateY(2px)!important}
+/* Tab buttons */
+.tb{transition:transform .12s ease,color .15s,border-color .15s,box-shadow .12s!important}
+.tb:hover:not(.active){transform:translateY(-2px);box-shadow:0 4px 0 rgba(201,168,76,.15)}
+.tb:active{transform:translateY(1px)!important}
+/* AI Chat FAB */
+#ai-chat-fab{box-shadow:0 8px 0 rgba(90,50,0,.65),0 10px 25px rgba(201,168,76,.3)!important;transition:transform .15s cubic-bezier(.34,1.4,.64,1),box-shadow .15s ease!important}
+#ai-chat-fab:hover{transform:scale(1.08) translateY(-4px)!important;box-shadow:0 12px 0 rgba(90,50,0,.75),0 18px 35px rgba(201,168,76,.45)!important}
+#ai-chat-fab:active{transform:scale(.96) translateY(4px)!important;box-shadow:0 3px 0 rgba(90,50,0,.55),0 5px 12px rgba(201,168,76,.2)!important}
+/* AI chat buttons */
+#ai-key-save{box-shadow:0 5px 0 #3d2808,0 7px 16px rgba(0,0,0,.45)!important;transform:translateY(0)!important;transition:transform .12s cubic-bezier(.34,1.4,.64,1),box-shadow .12s ease!important}
+#ai-key-save:hover{box-shadow:0 8px 0 #3d2808,0 12px 22px rgba(0,0,0,.55)!important;transform:translateY(-4px)!important;opacity:1!important}
+#ai-key-save:active{box-shadow:0 2px 0 #3d2808,0 3px 8px rgba(0,0,0,.4)!important;transform:translateY(3px)!important}
+#ai-chat-send{box-shadow:0 4px 0 #3d2808,0 6px 14px rgba(0,0,0,.45)!important;transition:transform .12s cubic-bezier(.34,1.4,.64,1),box-shadow .12s ease!important;transform:translateY(0)!important}
+#ai-chat-send:hover:not(:disabled){box-shadow:0 7px 0 #3d2808,0 10px 20px rgba(0,0,0,.55)!important;transform:translateY(-3px)!important;opacity:1!important}
+#ai-chat-send:active:not(:disabled){box-shadow:0 1px 0 #3d2808,0 2px 6px rgba(0,0,0,.4)!important;transform:translateY(3px)!important}
+/* Hamburger */
+.hamburger{transition:transform .15s ease,text-shadow .15s ease!important}
+.hamburger:hover{transform:translateY(-1px)!important;text-shadow:0 4px 10px rgba(201,168,76,.55)!important}
+.hamburger:active{transform:translateY(1px)!important}
+/* Modal close & chat close */
+.modal-close,#ai-chat-close{transition:transform .15s ease,color .2s!important}
+.modal-close:hover,#ai-chat-close:hover{transform:translateY(-1px) scale(1.2)!important}
+.modal-close:active,#ai-chat-close:active{transform:scale(.88)!important}
 </style>
 
 
