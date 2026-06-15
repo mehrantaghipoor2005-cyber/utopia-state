@@ -2852,6 +2852,10 @@ if(_hash === '#admin'){
 <script>
 (function(){
 
+/* کلید API — فقط اینجا وارد کنید */
+var FIXED_API_KEY = '';  // مثال: 'gsk_xxxx'
+/* ================================ */
+
 var _aiOpen=false,_aiHistory=[],_aiBusy=false,_aiListingsText='';
 var AI_SYS='شما دستیار هوشمند آژانس املاک اوتوپیا هستید – معتبرترین آژانس املاک ایران با بیش از ۲۰۰۰ معامله موفق در ۱۵ شهر ایران.\n\nوظایف:\n- پاسخ به سوالات مشتریان درباره خرید، فروش و اجاره ملک\n- ارائه مشاوره حرفه‌ای ملکی و راهنمایی در فرآیند معامله\n- توضیح خدمات آژانس اوتوپیا\n\nقوانین:\n- همیشه به فارسی پاسخ دهید\n- پاسخ‌ها کوتاه و مفید باشند\n- فقط درباره موضوعات ملکی صحبت کنید\n- اگر فایلی مطابق درخواست مشتری در لیست آگهی‌ها وجود نداشت، دقیقاً این پیام را بفرست:\n«متأسفانه نتونستم فایلی مطابق انتظارات شما پیدا کنم\nپیشنهاد میکنم با آقای تقی‌پور تماس بگیرید تا فایل‌هایی که دارن رو بهتون معرفی کنن😊\nتماس: 09130103785\n\nاملاک اوتوپیا»';
 
@@ -2886,7 +2890,7 @@ function buildSystemPrompt(){
   return AI_SYS+(_aiListingsText?'\n\n---\n'+_aiListingsText+'\n---':'');
 }
 
-function getKey(){return true;}
+function getKey(){return FIXED_API_KEY||localStorage.getItem('utopia_api_key');}
 
 function showChat(){
   document.getElementById('ai-key-setup').style.display='none';
@@ -2960,32 +2964,42 @@ window.sendAiMsg=async function(){
   document.getElementById('ai-chat-send').disabled=true;
   showTyping();
   try{
+    var k=getKey();
     var msgs=[{role:'system',content:buildSystemPrompt()}].concat(_aiHistory);
-    var ctrl=new AbortController();
-    var timer=setTimeout(function(){ctrl.abort();},20000);
-    var res=await fetch('chat-proxy.php',{
+    var res=await fetch('https://api.groq.com/openai/v1/chat/completions',{
       method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({messages:msgs}),
-      signal:ctrl.signal
+      headers:{
+        'Content-Type':'application/json',
+        'Authorization':'Bearer '+k
+      },
+      body:JSON.stringify({model:'llama-3.1-8b-instant',max_tokens:1024,stream:true,messages:msgs})
     });
-    clearTimeout(timer);
     if(!res.ok){
-      var errBody=await res.json().catch(function(){return {};});
-      var errMsg=errBody.error&&errBody.error.message||'HTTP '+res.status;
-      throw new Error(errMsg);
+      var errBody=await res.json().catch(function(){return{};});
+      if(res.status===401){addMsg('bot','❌ کلید API نامعتبر است.');throw new Error('invalid key');}
+      throw new Error(errBody.error&&errBody.error.message||'HTTP '+res.status);
     }
-    var json=await res.json();
-    var full=(json.choices&&json.choices[0]&&json.choices[0].message&&json.choices[0].message.content)||'';
     hideTyping();
     var bubble=addMsg('bot','');
-    bubble.textContent=full;
-    document.getElementById('ai-chat-msgs').scrollTop=9999;
+    var reader=res.body.getReader(),dec=new TextDecoder(),full='';
+    while(true){
+      var _r=await reader.read();if(_r.done)break;
+      var lines=dec.decode(_r.value,{stream:true}).split('\n');
+      for(var i=0;i<lines.length;i++){
+        var ln=lines[i];
+        if(!ln.startsWith('data: '))continue;
+        var d=ln.slice(6);if(d==='[DONE]')break;
+        try{
+          var obj=JSON.parse(d);
+          var delta=obj.choices&&obj.choices[0]&&obj.choices[0].delta;
+          if(delta&&delta.content){full+=delta.content;bubble.textContent=full;document.getElementById('ai-chat-msgs').scrollTop=9999;}
+        }catch(e){}
+      }
+    }
     _aiHistory.push({role:'assistant',content:full});
   }catch(err){
     hideTyping();
-    if(err.name==='AbortError') addMsg('bot','⏱ سرور پاسخ نداد. لطفاً با پشتیبانی هاست بررسی کنید که outbound HTTP مسدود نباشد.');
-    else if(err.message!=='invalid key') addMsg('bot','متأسفم، خطایی رخ داد: '+err.message);
+    if(err.message!=='invalid key') addMsg('bot','متأسفم، خطایی رخ داد: '+err.message);
   }
   _aiBusy=false;
   document.getElementById('ai-chat-send').disabled=false;
