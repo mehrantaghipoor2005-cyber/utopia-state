@@ -2857,8 +2857,39 @@ if(_hash === '#admin'){
 var FIXED_API_KEY = '';  // <-- کلید Anthropic خود را اینجا بین دو ' بگذارید (مثال: 'sk-ant-api03-...')
 /* ====================================================== */
 
-var _aiOpen=false,_aiHistory=[],_aiBusy=false;
-var AI_SYS='شما دستیار هوشمند آژانس املاک اوتوپیا هستید – معتبرترین آژانس املاک ایران با بیش از ۲۰۰۰ معامله موفق در ۱۵ شهر ایران.\n\nوظایف:\n- پاسخ به سوالات مشتریان درباره خرید، فروش و اجاره ملک\n- ارائه مشاوره حرفه‌ای ملکی و راهنمایی در فرآیند معامله\n- توضیح خدمات آژانس اوتوپیا\n\nقوانین:\n- همیشه به فارسی پاسخ دهید\n- پاسخ‌ها کوتاه و مفید باشند\n- فقط درباره موضوعات ملکی صحبت کنید';
+var _aiOpen=false,_aiHistory=[],_aiBusy=false,_aiListingsText='';
+var AI_SYS='شما دستیار هوشمند آژانس املاک اوتوپیا هستید – معتبرترین آژانس املاک ایران با بیش از ۲۰۰۰ معامله موفق در ۱۵ شهر ایران.\n\nوظایف:\n- پاسخ به سوالات مشتریان درباره خرید، فروش و اجاره ملک\n- ارائه مشاوره حرفه‌ای ملکی و راهنمایی در فرآیند معامله\n- توضیح خدمات آژانس اوتوپیا\n\nقوانین:\n- همیشه به فارسی پاسخ دهید\n- پاسخ‌ها کوتاه و مفید باشند\n- فقط درباره موضوعات ملکی صحبت کنید\n- اگر فایلی مطابق درخواست مشتری در لیست آگهی‌ها وجود نداشت، دقیقاً این پیام را بفرست:\n«متأسفانه نتونستم فایلی مطابق انتظارات شما پیدا کنم\nپیشنهاد میکنم با آقای تقی‌پور تماس بگیرید تا فایل‌هایی که دارن رو بهتون معرفی کنن😊\nتماس: 09130103785\n\nاملاک اوتوپیا»';
+
+async function loadAiListings(){
+  try{
+    var res=await sb.from('listings').select('title,type,price,area,rooms,location,description,status,light,view,floor_num,floors,elevator,parking,features').order('created_at',{ascending:false});
+    var data=res.data||[];
+    if(!data.length){_aiListingsText='در حال حاضر آگهی فعالی در سیستم ثبت نشده است.';return;}
+    _aiListingsText='آگهی‌های فعال آژانس اوتوپیا:\n'+data.map(function(d,i){
+      var p=[];
+      if(d.title) p.push('عنوان: '+d.title);
+      if(d.type) p.push('نوع: '+d.type);
+      if(d.price) p.push('قیمت: '+d.price);
+      if(d.area) p.push('متراژ: '+d.area+' متر');
+      if(d.rooms) p.push('اتاق: '+d.rooms);
+      if(d.location) p.push('موقعیت: '+d.location);
+      if(d.floor_num) p.push('طبقه: '+d.floor_num);
+      if(d.floors) p.push('تعداد طبقات ساختمان: '+d.floors);
+      if(d.elevator) p.push('آسانسور: '+d.elevator);
+      if(d.parking) p.push('پارکینگ: '+d.parking);
+      if(d.light) p.push('نورگیری: '+d.light);
+      if(d.view) p.push('ویو: '+d.view);
+      if(d.status) p.push('وضعیت: '+d.status);
+      if(d.features) p.push('ویژگی‌ها: '+d.features);
+      if(d.description) p.push('توضیحات: '+d.description);
+      return (i+1)+'. '+p.join(' | ');
+    }).join('\n');
+  }catch(e){_aiListingsText='';}
+}
+
+function buildSystemPrompt(){
+  return AI_SYS+(_aiListingsText?'\n\n---\n'+_aiListingsText+'\n---':'');
+}
 
 function getKey(){return FIXED_API_KEY||localStorage.getItem('utopia_api_key');}
 
@@ -2883,7 +2914,7 @@ window.toggleAiChat=function(){
   var p=document.getElementById('ai-chat-panel');
   if(_aiOpen){
     p.classList.add('open');
-    if(getKey()) showChat(); else showKeySetup();
+    if(getKey()){showChat();loadAiListings();} else showKeySetup();
   } else {
     p.classList.remove('open');
   }
@@ -2934,7 +2965,7 @@ window.sendAiMsg=async function(){
   document.getElementById('ai-chat-send').disabled=true;
   showTyping();
   try{
-    var msgs=[{role:'system',content:AI_SYS}].concat(_aiHistory);
+    var msgs=[{role:'system',content:buildSystemPrompt()}].concat(_aiHistory);
     var res=await fetch('https://api.groq.com/openai/v1/chat/completions',{
       method:'POST',
       headers:{
