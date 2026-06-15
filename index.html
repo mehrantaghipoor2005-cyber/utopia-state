@@ -1611,25 +1611,31 @@ async function doLogin(){
   errEl.textContent='';
   if(!email||!pass){errEl.textContent='شماره موبایل و رمز را وارد کنید';return}
   btn.textContent='در حال ورود...';btn.disabled=true;
-  const hashedPass=await sha256(pass);
-  const{data,error}=await sb.from('users').select('*').eq('phone',email).eq('password_hash',hashedPass).single();
-  btn.textContent='ورود به پنل';btn.disabled=false;
-  if(error){
-    if(error.code==='PGRST116')errEl.textContent='❌ شماره موبایل یا رمز اشتباه است';
-    else errEl.textContent='❌ خطای اتصال: '+error.message;
-    console.error('Login error:',error);
-    return;
+  try{
+    const hashedPass=await sha256(pass);
+    const{data,error}=await sb.from('users').select('*').eq('phone',email).eq('password_hash',hashedPass).single();
+    btn.textContent='ورود به پنل';btn.disabled=false;
+    if(error){
+      if(error.code==='PGRST116')errEl.textContent='❌ شماره موبایل یا رمز اشتباه است';
+      else errEl.textContent='❌ خطای اتصال: '+error.message;
+      console.error('Login error:',error);
+      return;
+    }
+    if(!data){errEl.textContent='❌ شماره موبایل یا رمز اشتباه است';return}
+    me=data;
+    document.getElementById('login-screen').style.display='none';
+    document.getElementById('dashboard').style.display='block';
+    document.getElementById('uname').textContent=data.name;
+    const b=document.getElementById('rbadge');
+    b.textContent=data.role==='admin'?'👑 ادمین':'🏠 مشاور';
+    b.className='rbadge '+(data.role==='admin'?'r-admin':'r-cons');
+    if(data.role==='admin'){document.getElementById('ctab').style.display='inline-block';document.getElementById('settab').style.display='inline-block';loadCons()}
+    loadDash();loadLt();loadCRM();loadRem();
+  }catch(e){
+    btn.textContent='ورود به پنل';btn.disabled=false;
+    errEl.textContent='❌ خطا: '+e.message;
+    console.error('Login exception:',e);
   }
-  if(!data){errEl.textContent='❌ شماره موبایل یا رمز اشتباه است';return}
-  me=data;
-  document.getElementById('login-screen').style.display='none';
-  document.getElementById('dashboard').style.display='block';
-  document.getElementById('uname').textContent=data.name;
-  const b=document.getElementById('rbadge');
-  b.textContent=data.role==='admin'?'👑 ادمین':'🏠 مشاور';
-  b.className='rbadge '+(data.role==='admin'?'r-admin':'r-cons');
-  if(data.role==='admin'){document.getElementById('ctab').style.display='inline-block';document.getElementById('settab').style.display='inline-block';loadCons()}
-  loadDash();loadLt();loadCRM();loadRem();
 }
 function refreshDash(){
   const btn = document.querySelector('.refresh-liquid');
