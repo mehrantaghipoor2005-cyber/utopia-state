@@ -1609,12 +1609,18 @@ async function doLogin(){
   const errEl=document.getElementById('login-error');
   const btn=document.getElementById('login-btn');
   errEl.textContent='';
-  if(!email||!pass){errEl.textContent='ایمیل و رمز را وارد کنید';return}
+  if(!email||!pass){errEl.textContent='شماره موبایل و رمز را وارد کنید';return}
   btn.textContent='در حال ورود...';btn.disabled=true;
   const hashedPass=await sha256(pass);
   const{data,error}=await sb.from('users').select('*').eq('phone',email).eq('password_hash',hashedPass).single();
   btn.textContent='ورود به پنل';btn.disabled=false;
-  if(error||!data){errEl.textContent='❌ ایمیل یا رمز اشتباه است';return}
+  if(error){
+    if(error.code==='PGRST116')errEl.textContent='❌ شماره موبایل یا رمز اشتباه است';
+    else errEl.textContent='❌ خطای اتصال: '+error.message;
+    console.error('Login error:',error);
+    return;
+  }
+  if(!data){errEl.textContent='❌ شماره موبایل یا رمز اشتباه است';return}
   me=data;
   document.getElementById('login-screen').style.display='none';
   document.getElementById('dashboard').style.display='block';
