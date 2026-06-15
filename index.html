@@ -2935,14 +2935,14 @@ window.sendAiMsg=async function(){
   showTyping();
   try{
     var msgs=[{role:'system',content:AI_SYS}].concat(_aiHistory);
-    var res=await fetch('https://api.x.ai/v1/chat/completions',{
+    var res=await fetch('https://api.groq.com/openai/v1/chat/completions',{
       method:'POST',
       headers:{
         'Content-Type':'application/json',
         'Authorization':'Bearer '+k
       },
       body:JSON.stringify({
-        model:'grok-beta',
+        model:'llama-3.1-8b-instant',
         max_tokens:1024,
         stream:true,
         messages:msgs
