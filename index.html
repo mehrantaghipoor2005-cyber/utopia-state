@@ -2961,11 +2961,15 @@ window.sendAiMsg=async function(){
   showTyping();
   try{
     var msgs=[{role:'system',content:buildSystemPrompt()}].concat(_aiHistory);
+    var ctrl=new AbortController();
+    var timer=setTimeout(function(){ctrl.abort();},20000);
     var res=await fetch('chat-proxy.php',{
       method:'POST',
       headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({messages:msgs})
+      body:JSON.stringify({messages:msgs}),
+      signal:ctrl.signal
     });
+    clearTimeout(timer);
     if(!res.ok){
       var errBody=await res.json().catch(function(){return {};});
       var errMsg=errBody.error&&errBody.error.message||'HTTP '+res.status;
@@ -2980,7 +2984,8 @@ window.sendAiMsg=async function(){
     _aiHistory.push({role:'assistant',content:full});
   }catch(err){
     hideTyping();
-    if(err.message!=='invalid key') addMsg('bot','متأسفم، خطایی رخ داد: '+err.message);
+    if(err.name==='AbortError') addMsg('bot','⏱ سرور پاسخ نداد. لطفاً با پشتیبانی هاست بررسی کنید که outbound HTTP مسدود نباشد.');
+    else if(err.message!=='invalid key') addMsg('bot','متأسفم، خطایی رخ داد: '+err.message);
   }
   _aiBusy=false;
   document.getElementById('ai-chat-send').disabled=false;
