@@ -2937,7 +2937,7 @@ window.sendAiMsg=async function(){
         'anthropic-dangerous-direct-browser-access':'true'
       },
       body:JSON.stringify({
-        model:'claude-opus-4-8',
+        model:'claude-haiku-4-5-20251001',
         max_tokens:1024,
         stream:true,
         system:AI_SYS,
@@ -2945,9 +2945,13 @@ window.sendAiMsg=async function(){
       })
     });
     if(!res.ok){
-      var err=await res.json().catch(function(){return {};});
-      if(res.status===401){localStorage.removeItem('utopia_api_key');showKeySetup();throw new Error('invalid key');}
-      throw new Error(err.error&&err.error.message||'HTTP '+res.status);
+      var errBody=await res.json().catch(function(){return {};});
+      var errMsg=errBody.error&&errBody.error.message||'HTTP '+res.status;
+      if(res.status===401){
+        addMsg('bot','❌ کلید API نامعتبر است. لطفاً کلید را بررسی کنید.');
+        throw new Error('invalid key');
+      }
+      throw new Error(errMsg);
     }
     hideTyping();
     var bubble=addMsg('bot','');
